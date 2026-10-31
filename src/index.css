@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #05203f;
+  --color-navy-800: #0a2b52;
+  --color-navy-600: #1d4271;
+  --color-navy-50: #eef2f7;
+  --color-brand: #d30011;
+  --color-brand-50: #fdecee;
+  --color-ink: #595959;
+  --color-paper: #f6f7f9;
+  --color-line: #e3e7ee;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-marquee-rev: marquee 46s linear infinite reverse;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: #ffffff;
+  color: var(--color-navy);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--color-brand); color: white; }
+
+.grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(5, 32, 63, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(5, 32, 63, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* custom range input */
+.range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--color-brand) var(--fill, 50%), var(--color-line) var(--fill, 50%));
+  outline: none;
+  cursor: pointer;
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px; border-radius: 999px;
+  background: white; border: 2px solid var(--color-navy);
+  box-shadow: 0 2px 10px rgba(5, 32, 63, 0.25);
+  transition: transform 0.15s ease;
+}
+.range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.range::-moz-range-thumb {
+  width: 20px; height: 20px; border-radius: 999px;
+  background: white; border: 2px solid var(--color-navy);
+}
+.range:focus-visible { box-shadow: 0 0 0 4px rgba(211, 0, 17, 0.2); }
+
+.marquee-mask {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+.group\/marquee:hover .animate-marquee,
+.group\/marquee:hover .animate-marquee-rev { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-marquee, .animate-marquee-rev { animation: none; }
+}
