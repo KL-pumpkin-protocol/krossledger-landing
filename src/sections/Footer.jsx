@@ -3,7 +3,7 @@ import { Logo } from '../components/ui';
 const COLS = [
   { title: 'Product', links: [['How it works', '#how'], ['What changes', '#changes'], ['The 90-day offer', '#offer'], ['FAQ', '#faq']] },
   { title: 'Relationships', links: [['Landlords & tenants', '#who'], ['Lenders & borrowers', '#who'], ['Insurers & brokers', '#who'], ['Securities', '#who']] },
-  { title: 'Company', links: [['Contact', '#contact'], ['Mechanism demo', '#demo']] },
+  { title: 'Company', links: [['Contact', '#contact'], ['Mechanism demo', '#demo'], ['Log in', '#/login'], ['Create a ledger', '#/signup']] },
 ];
 
 export default function Footer() {

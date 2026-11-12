@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
 import { ArrowRight, Menu, X } from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
+import { useHashRoute } from '../lib/route';
 import { Logo, MagneticButton } from '../components/ui';
 
 const LINKS = [
@@ -15,6 +17,8 @@ const LINKS = [
 export default function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user, logout } = useAuth();
+  const route = useHashRoute();
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 24 });
 
@@ -28,6 +32,7 @@ export default function Nav() {
   return (
     <>
       {/* announcement bar */}
+      {route === 'home' && (
       <a
         href="#offer"
         className="group relative z-50 flex items-center justify-center gap-2 bg-navy px-4 py-2 text-center text-xs font-medium text-white/85 sm:text-sm"
@@ -36,10 +41,13 @@ export default function Nav() {
         90-day offer: one relationship. If the arguments don’t drop, walk away.
         <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
       </a>
+      )}
 
       <header
         className={`sticky top-0 z-40 transition-all duration-300 ${
-          scrolled ? 'border-b border-line bg-white/80 backdrop-blur-xl' : 'border-b border-transparent bg-white/0'
+          scrolled || route !== 'home'
+            ? 'border-b border-line bg-white/90 backdrop-blur-xl'
+            : 'border-b border-transparent bg-white/0'
         }`}
       >
         <motion.div style={{ scaleX: progress }} className="absolute inset-x-0 bottom-0 h-[2px] origin-left bg-brand" />
@@ -58,10 +66,29 @@ export default function Nav() {
               </li>
             ))}
           </ul>
-          <div className="hidden lg:block">
-            <MagneticButton href="#how" variant="dark" className="!px-5 !py-2.5 text-sm">
-              See it on one relationship
-            </MagneticButton>
+          <div className="hidden items-center gap-3 lg:flex">
+            {user ? (
+              <>
+                <span className="max-w-[180px] truncate text-sm text-ink" title={user.email}>
+                  {user.email}
+                </span>
+                <MagneticButton href="#/app" variant="dark" className="!px-5 !py-2.5 text-sm">
+                  Your ledger
+                </MagneticButton>
+                <button type="button" onClick={logout} className="text-sm font-medium text-ink hover:text-navy">
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <a href="#/login" className="px-2 text-sm font-medium text-navy hover:text-brand">
+                  Log in
+                </a>
+                <MagneticButton href="#/signup" variant="dark" className="!px-5 !py-2.5 text-sm">
+                  Sign up
+                </MagneticButton>
+              </>
+            )}
           </div>
           <button
             onClick={() => setOpen((o) => !o)}
@@ -98,10 +125,33 @@ export default function Nav() {
                     </a>
                   </motion.li>
                 ))}
-                <motion.li variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }} className="pt-4">
-                  <MagneticButton href="#offer" className="w-full" onClick={() => setOpen(false)}>
-                    Start with one relationship
-                  </MagneticButton>
+                <motion.li variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }} className="flex flex-col gap-3 pt-4">
+                  {user ? (
+                    <>
+                      <MagneticButton href="#/app" className="w-full" onClick={() => setOpen(false)}>
+                        Your ledger
+                      </MagneticButton>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpen(false);
+                          logout();
+                        }}
+                        className="text-sm font-medium text-ink"
+                      >
+                        Sign out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <a href="#/login" onClick={() => setOpen(false)} className="text-sm font-semibold text-navy">
+                        Log in
+                      </a>
+                      <MagneticButton href="#/signup" className="w-full" onClick={() => setOpen(false)}>
+                        Sign up
+                      </MagneticButton>
+                    </>
+                  )}
                 </motion.li>
               </motion.ul>
             </motion.div>

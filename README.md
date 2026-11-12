@@ -21,6 +21,10 @@ One-time setup:
    - `A` records for `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
    - `CNAME` record for `www` → `kl-pumpkin-protocol.github.io`
 
+## Accounts
+
+Login and signup use PocketBase at `https://auth.hexcros.com` (`VITE_POCKETBASE_URL` overrides it). Signed-in users open `#/app` and submit a ledger. The browser calls `POST /api/krossledger/instances` on PocketBase. The hook in `pocketbase/pb_hooks/krossledger.pb.js` adds the fleet API key and calls `https://fleet.hexcros.com/v1/instances`. Copy that file into the server `pb_hooks` directory and set `FLEET_API_KEY` (and `GHCR_USERNAME` / `GHCR_TOKEN` if the registry credentials should stay off the form).
+
 ## Structure
 
 - `src/components/ui.jsx` – shared primitives (reveal animations, magnetic button, spotlight card, counters, sliders)

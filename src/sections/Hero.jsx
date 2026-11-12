@@ -138,6 +138,9 @@ export default function Hero() {
             <MagneticButton href="#cost" variant="ghost">
               What the gap costs you
             </MagneticButton>
+            <a href="#/signup" className="text-sm font-semibold text-navy underline-offset-4 hover:text-brand hover:underline">
+              Create your ledger
+            </a>
           </motion.div>
         </div>
 

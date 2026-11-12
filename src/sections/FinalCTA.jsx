@@ -37,8 +37,9 @@ export default function FinalCTA() {
                 They just don’t agree as often as they should, and <span className="font-semibold text-brand">that disagreement costs money.</span>
               </p>
             </Reveal>
-            <Reveal delay={0.15} className="mt-8">
+            <Reveal delay={0.15} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <MagneticButton href="mailto:hello@krossledger.com?subject=One%20relationship">Make one relationship stop arguing</MagneticButton>
+              <MagneticButton href="#/signup" variant="ghost">Create your ledger</MagneticButton>
             </Reveal>
           </div>
 

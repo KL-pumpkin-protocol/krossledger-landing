@@ -11,25 +11,53 @@ import FAQ from './sections/FAQ';
 import MechanismDemo from './sections/MechanismDemo';
 import FinalCTA from './sections/FinalCTA';
 import Footer from './sections/Footer';
+import { AuthProvider } from './auth/AuthContext';
+import { useHashRoute } from './lib/route';
+import AuthScreen from './screens/AuthScreen';
+import CreateLedger from './screens/CreateLedger';
 
-export default function App() {
+function AppRoutes() {
+  const route = useHashRoute();
+  const account = route !== 'home';
+
   return (
     <>
       <Nav />
-      <main>
-        <Hero />
-        <Marquee />
-        <RealCost />
-        <WhatChanges />
-        <AuditCoverage />
-        <WhoUses />
-        <HowItWorks />
-        <Offer />
-        <FAQ />
-        <MechanismDemo />
-        <FinalCTA />
-      </main>
-      <Footer />
+      {route === 'login' && <AuthScreen mode="login" />}
+      {route === 'signup' && <AuthScreen mode="signup" />}
+      {route === 'app' && <CreateLedger />}
+      {route === 'home' && (
+        <main>
+          <Hero />
+          <Marquee />
+          <RealCost />
+          <WhatChanges />
+          <AuditCoverage />
+          <WhoUses />
+          <HowItWorks />
+          <Offer />
+          <FAQ />
+          <MechanismDemo />
+          <FinalCTA />
+        </main>
+      )}
+      {account ? (
+        <footer className="border-t border-line px-4 py-6 text-center text-xs text-ink">
+          <a href="#top" className="font-medium text-navy hover:text-brand">
+            Back to KrossLedger
+          </a>
+        </footer>
+      ) : (
+        <Footer />
+      )}
     </>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
