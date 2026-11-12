@@ -33,15 +33,6 @@ export const SECTIONS = [
       { key: 'SETUP_ORG_DISPLAY_NAME', label: 'Org display name', placeholder: 'Example-AG' },
     ],
   },
-  {
-    id: 'registry',
-    title: 'Registry',
-    lead: 'Leave these blank. auth.hexcros.com injects the shared registry credentials. Values typed here are used only when the server has none.',
-    fields: [
-      { key: 'GHCR_USERNAME', label: 'GHCR username', autoComplete: 'off' },
-      { key: 'GHCR_TOKEN', label: 'GHCR token', type: 'password', autoComplete: 'off' },
-    ],
-  },
 ];
 
 export const ENV_FIELDS = SECTIONS.flatMap((section) => section.fields);

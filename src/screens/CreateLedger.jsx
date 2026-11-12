@@ -123,7 +123,7 @@ export default function CreateLedger() {
                 placeholder="setup-demo"
                 autoComplete="off"
                 required
-                pattern="[a-z][a-z0-9-]{0,38}"
+                pattern={"[a-z][a-z0-9\\-]{0,38}"}
                 onChange={(e) => onChange('name', e.target.value.toLowerCase())}
               />
               <span className="text-xs text-ink">Lowercase slug. The fleet assigns the hostname from this name.</span>
