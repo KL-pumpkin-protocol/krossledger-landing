@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { ledgerFromResponse, readStoredLedger, writeStoredLedger } from '../lib/provision';
+import { clearStoredLedger, ledgerFromResponse, readStoredLedger, writeStoredLedger } from '../lib/provision';
 import { getPb, isSuperuser } from '../lib/pb';
 import { useAuth } from './AuthContext';
 
@@ -36,7 +36,12 @@ export function LedgerProvider({ children }) {
         setLedgerUserId(userId);
       })
       .catch((err) => {
-        if (cancelled || err?.status === 404) return;
+        if (cancelled) return;
+        if (err?.status === 404 && String(err?.message || '').toLowerCase().includes('no ledger')) {
+          clearStoredLedger(userId);
+          setLedger(null);
+          return;
+        }
         // Keep the browser copy when the account route is unavailable.
       })
       .finally(() => {

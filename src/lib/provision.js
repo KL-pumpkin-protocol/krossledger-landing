@@ -87,6 +87,15 @@ export function readStoredLedger(userId) {
   }
 }
 
+export function clearStoredLedger(userId) {
+  if (!userId) return;
+  try {
+    localStorage.removeItem(storageKey(userId));
+  } catch {
+    // The account page falls back to the server row.
+  }
+}
+
 export function writeStoredLedger(userId, ledger) {
   if (!userId || !ledger?.name) return;
   try {

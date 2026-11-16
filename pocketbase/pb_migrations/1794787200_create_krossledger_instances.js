@@ -53,6 +53,24 @@ migrate((app) => {
         max: 64,
       },
       {
+        name: "provisioning_state",
+        type: "text",
+        required: false,
+        max: 32,
+      },
+      {
+        name: "readiness",
+        type: "text",
+        required: false,
+        max: 32,
+      },
+      {
+        name: "ec2_state",
+        type: "text",
+        required: false,
+        max: 32,
+      },
+      {
         name: "alert_sent",
         type: "bool",
         required: false,
