@@ -102,9 +102,6 @@ function LedgerReady({ ledger, email }) {
         <span className="text-brand">Signed in</span> · {email}
       </p>
       <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-navy sm:text-4xl">Your KrossLedger</h1>
-      <p className="mt-3 text-sm leading-relaxed text-ink">
-        It usually comes up after the third minute.
-      </p>
 
       <section className="mt-8 rounded-3xl border border-line bg-white p-5 sm:p-7">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink">Ledger address</p>

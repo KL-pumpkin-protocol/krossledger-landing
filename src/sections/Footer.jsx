@@ -15,7 +15,7 @@ export default function Footer() {
       ...column,
       links: column.links.map(([label, href]) => (
         href === '#/signup'
-          ? [account.hasLedger ? 'Your ledger' : 'Create a ledger', account.href]
+          ? [account.footerLabel, account.href]
           : [label, href]
       )),
     };

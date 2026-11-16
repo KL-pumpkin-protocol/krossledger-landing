@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { errorText, getPb } from '../lib/pb';
+import { errorText, getPb, isSuperuser } from '../lib/pb';
 
 const AuthContext = createContext(null);
 
@@ -13,7 +13,8 @@ export function AuthProvider({ children }) {
       setUser(record);
     });
     if (pb.authStore.isValid) {
-      pb.collection('users')
+      const collection = isSuperuser(pb.authStore.record) ? '_superusers' : 'users';
+      pb.collection(collection)
         .authRefresh()
         .catch(() => pb.authStore.clear())
         .finally(() => setReady(true));
@@ -27,11 +28,18 @@ export function AuthProvider({ children }) {
     return {
       user,
       ready,
+      superuser: isSuperuser(user),
       async login(email, password) {
+        const identity = email.trim();
         try {
-          await pb.collection('users').authWithPassword(email.trim(), password);
-        } catch (err) {
-          throw new Error(errorText(err));
+          await pb.collection('users').authWithPassword(identity, password);
+        } catch (userErr) {
+          if (!userErr?.status || userErr.status >= 500) throw new Error(errorText(userErr));
+          try {
+            await pb.collection('_superusers').authWithPassword(identity, password);
+          } catch {
+            throw new Error(errorText(userErr));
+          }
         }
       },
       async signup({ name, email, password, passwordConfirm }) {

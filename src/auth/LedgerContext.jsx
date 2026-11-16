@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ledgerFromResponse, readStoredLedger, writeStoredLedger } from '../lib/provision';
-import { getPb } from '../lib/pb';
+import { getPb, isSuperuser } from '../lib/pb';
 import { useAuth } from './AuthContext';
 
 const LedgerContext = createContext(null);
@@ -13,10 +13,10 @@ export function LedgerProvider({ children }) {
 
   useEffect(() => {
     if (!authReady) return undefined;
-    if (!user?.id) {
+    if (!user?.id || isSuperuser(user)) {
       setLedger(null);
       setLedgerUserId('');
-      setLoadedFor('');
+      setLoadedFor(user?.id || '');
       return undefined;
     }
 
@@ -75,6 +75,8 @@ export function useLedger() {
 export function useAccountPath() {
   const { user } = useAuth();
   const { ledger } = useLedger();
-  if (!user) return { href: '#/signup', hasLedger: false };
-  return { href: '#/app', hasLedger: Boolean(ledger) };
+  if (!user) return { href: '#/signup', label: 'Create your ledger', footerLabel: 'Create a ledger' };
+  if (isSuperuser(user)) return { href: '#/app', label: 'Admin', footerLabel: 'Admin' };
+  if (ledger) return { href: '#/app', label: 'Your ledger', footerLabel: 'Your ledger' };
+  return { href: '#/app', label: 'Create your ledger', footerLabel: 'Create a ledger' };
 }

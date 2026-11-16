@@ -47,6 +47,12 @@ migrate((app) => {
         max: 64,
       },
       {
+        name: "instance_id",
+        type: "text",
+        required: false,
+        max: 64,
+      },
+      {
         name: "alert_sent",
         type: "bool",
         required: false,

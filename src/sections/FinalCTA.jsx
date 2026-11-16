@@ -42,7 +42,7 @@ export default function FinalCTA() {
             <Reveal delay={0.15} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <MagneticButton href="mailto:hello@krossledger.com?subject=One%20relationship">Make one relationship stop arguing</MagneticButton>
               <MagneticButton href={account.href} variant="ghost">
-                {account.hasLedger ? 'Your ledger' : 'Create your ledger'}
+                {account.label}
               </MagneticButton>
             </Reveal>
           </div>

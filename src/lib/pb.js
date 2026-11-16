@@ -12,6 +12,10 @@ export function getPb() {
   return client;
 }
 
+export function isSuperuser(record) {
+  return record?.collectionName === '_superusers';
+}
+
 export function errorText(err) {
   const data = err?.response?.data || err?.response;
   if (data && typeof data === 'object') {

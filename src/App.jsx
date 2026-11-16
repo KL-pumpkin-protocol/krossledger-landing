@@ -11,14 +11,16 @@ import FAQ from './sections/FAQ';
 import MechanismDemo from './sections/MechanismDemo';
 import FinalCTA from './sections/FinalCTA';
 import Footer from './sections/Footer';
-import { AuthProvider } from './auth/AuthContext';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 import { LedgerProvider } from './auth/LedgerContext';
 import { useHashRoute } from './lib/route';
 import AuthScreen from './screens/AuthScreen';
 import CreateLedger from './screens/CreateLedger';
+import AdminDashboard from './screens/AdminDashboard';
 
 function AppRoutes() {
   const route = useHashRoute();
+  const { superuser } = useAuth();
   const account = route !== 'home';
 
   return (
@@ -26,7 +28,7 @@ function AppRoutes() {
       <Nav />
       {route === 'login' && <AuthScreen mode="login" />}
       {route === 'signup' && <AuthScreen mode="signup" />}
-      {route === 'app' && <CreateLedger />}
+      {route === 'app' && (superuser ? <AdminDashboard /> : <CreateLedger />)}
       {route === 'home' && (
         <main>
           <Hero />

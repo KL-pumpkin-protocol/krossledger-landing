@@ -141,7 +141,7 @@ export default function Hero() {
               What the gap costs you
             </MagneticButton>
             <a href={account.href} className="text-sm font-semibold text-navy underline-offset-4 hover:text-brand hover:underline">
-              {account.hasLedger ? 'Your ledger' : 'Create your ledger'}
+              {account.label}
             </a>
           </motion.div>
         </div>

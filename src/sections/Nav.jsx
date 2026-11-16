@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
 import { ArrowRight, Menu, X } from 'lucide-react';
+import { useAccountPath } from '../auth/LedgerContext';
 import { useAuth } from '../auth/AuthContext';
 import { useHashRoute } from '../lib/route';
 import { Logo, MagneticButton } from '../components/ui';
@@ -18,6 +19,7 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useAuth();
+  const account = useAccountPath();
   const route = useHashRoute();
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 24 });
@@ -72,8 +74,8 @@ export default function Nav() {
                 <span className="max-w-[180px] truncate text-sm text-ink" title={user.email}>
                   {user.email}
                 </span>
-                <MagneticButton href="#/app" variant="dark" className="!px-5 !py-2.5 text-sm">
-                  Your ledger
+                <MagneticButton href={account.href} variant="dark" className="!px-5 !py-2.5 text-sm">
+                  {account.label}
                 </MagneticButton>
                 <button type="button" onClick={logout} className="text-sm font-medium text-ink hover:text-navy">
                   Sign out
@@ -128,8 +130,8 @@ export default function Nav() {
                 <motion.li variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }} className="flex flex-col gap-3 pt-4">
                   {user ? (
                     <>
-                      <MagneticButton href="#/app" className="w-full" onClick={() => setOpen(false)}>
-                        Your ledger
+                      <MagneticButton href={account.href} className="w-full" onClick={() => setOpen(false)}>
+                        {account.label}
                       </MagneticButton>
                       <button
                         type="button"
