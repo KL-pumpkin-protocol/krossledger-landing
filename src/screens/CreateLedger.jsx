@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useLedger } from '../auth/LedgerContext';
 import { SECTIONS, buildLedgerRequest, emptyLedgerValues, newIdempotencyKey } from '../lib/ledger';
-import { ESTIMATE_MS, PROVISION_MS, alertDue, countdown, formatClock, ledgerFromResponse } from '../lib/provision';
+import { ESTIMATE_MS, PROVISION_MS, alertDue, countdown, formatClock, ledgerFromResponse, ledgerHealthUrl } from '../lib/provision';
 import { errorText, getPb } from '../lib/pb';
 
 const inputClass =
@@ -47,6 +47,25 @@ function healthCopy(health) {
   return 'Checking';
 }
 
+async function browserSeesHealth(hostname) {
+  const target = ledgerHealthUrl(hostname);
+  if (!target) return false;
+  try {
+    const res = await fetch(target, { method: 'GET', cache: 'no-store', mode: 'cors' });
+    const text = await res.text().catch(() => '');
+    const body = text.trim().toLowerCase();
+    return res.ok && (body === 'ok' || body === '');
+  } catch {
+    // /health answers 200, and its CORS header names a different site, so this origin cannot read it.
+  }
+  try {
+    const res = await fetch(target, { method: 'GET', cache: 'no-store', mode: 'no-cors' });
+    return res.type === 'opaque';
+  } catch {
+    return false;
+  }
+}
+
 function LedgerReady({ ledger, email }) {
   const [now, setNow] = useState(() => Date.now());
   const [health, setHealth] = useState('checking');
@@ -65,17 +84,27 @@ function LedgerReady({ ledger, email }) {
       if (pending) return;
       pending = true;
       try {
-        const row = await getPb().send('/api/krossledger/instances/health', { method: 'GET' });
+        let serverUp = false;
+        let serverStatus = 0;
+        try {
+          const row = await getPb().send('/api/krossledger/instances/health', { method: 'GET' });
+          serverStatus = Number(row?.status) || 0;
+          serverUp = Boolean(row?.ok) || (serverStatus >= 200 && serverStatus < 300);
+        } catch {
+          serverUp = false;
+          serverStatus = 0;
+        }
         if (cancelled) return;
-        if (row?.ok) {
+        if (!serverUp && serverStatus < 400) {
+          serverUp = await browserSeesHealth(ledger.hostname);
+        }
+        if (cancelled) return;
+        if (serverUp) {
           setHealth('up');
           window.clearInterval(timer);
           return;
         }
         setHealth('down');
-      } catch (err) {
-        if (cancelled) return;
-        setHealth(err?.status === 404 ? 'unknown' : 'down');
       } finally {
         pending = false;
       }
@@ -88,7 +117,7 @@ function LedgerReady({ ledger, email }) {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [ledger.name]);
+  }, [ledger.hostname, ledger.name]);
 
   const clock = countdown(ledger.acceptedAt, now);
   const notified = health === 'down' && alertDue(ledger.acceptedAt, now);
@@ -152,7 +181,7 @@ function LedgerReady({ ledger, email }) {
           </p>
         ) : null}
 
-        {clock.ready ? (
+        {clock.ready && health === 'up' ? (
           <a
             href={ledger.hostname}
             target="_blank"
@@ -161,6 +190,16 @@ function LedgerReady({ ledger, email }) {
           >
             Open ledger
           </a>
+        ) : null}
+        {clock.ready && health !== 'up' ? (
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            className="mt-6 inline-flex cursor-not-allowed rounded-full bg-navy/15 px-6 py-3.5 text-sm font-semibold text-navy/45"
+          >
+            Open ledger
+          </button>
         ) : null}
       </section>
     </main>

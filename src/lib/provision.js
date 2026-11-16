@@ -22,6 +22,19 @@ export function hostnameFor(name) {
   return `https://${name}.${LEDGER_DOMAIN}`;
 }
 
+export function ledgerHealthUrl(hostname) {
+  let url;
+  try {
+    url = new URL(hostname);
+  } catch {
+    return '';
+  }
+  if (url.protocol !== 'https:' || url.username || url.password || url.port) return '';
+  const host = url.hostname.toLowerCase();
+  if (host !== LEDGER_DOMAIN && !host.endsWith(`.${LEDGER_DOMAIN}`)) return '';
+  return `${url.origin}/health`;
+}
+
 export function parseTime(value) {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (!value) return Date.now();
