@@ -1,0 +1,80 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { ledgerFromResponse, readStoredLedger, writeStoredLedger } from '../lib/provision';
+import { getPb } from '../lib/pb';
+import { useAuth } from './AuthContext';
+
+const LedgerContext = createContext(null);
+
+export function LedgerProvider({ children }) {
+  const { user, ready: authReady } = useAuth();
+  const [ledger, setLedger] = useState(null);
+  const [ledgerUserId, setLedgerUserId] = useState('');
+  const [loadedFor, setLoadedFor] = useState('');
+
+  useEffect(() => {
+    if (!authReady) return undefined;
+    if (!user?.id) {
+      setLedger(null);
+      setLedgerUserId('');
+      setLoadedFor('');
+      return undefined;
+    }
+
+    const userId = user.id;
+    setLedger(readStoredLedger(userId));
+    setLedgerUserId(userId);
+    let cancelled = false;
+
+    getPb()
+      .send('/api/krossledger/instances/mine', { method: 'GET' })
+      .then((row) => {
+        if (cancelled) return;
+        const next = ledgerFromResponse(row, row?.ledger_name || row?.name);
+        if (!next) return;
+        writeStoredLedger(userId, next);
+        setLedger(next);
+        setLedgerUserId(userId);
+      })
+      .catch((err) => {
+        if (cancelled || err?.status === 404) return;
+        // Keep the browser copy when the account route is unavailable.
+      })
+      .finally(() => {
+        if (!cancelled) setLoadedFor(userId);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, user?.id]);
+
+  const saveLedger = useCallback((userId, entry) => {
+    writeStoredLedger(userId, entry);
+    setLedger(entry);
+    setLedgerUserId(userId);
+    setLoadedFor(userId);
+  }, []);
+
+  const visibleLedger = user?.id && ledgerUserId === user.id ? ledger : null;
+
+  const value = useMemo(() => ({
+    ledger: visibleLedger,
+    ready: !user?.id || loadedFor === user.id,
+    saveLedger,
+  }), [visibleLedger, user?.id, loadedFor, saveLedger]);
+
+  return <LedgerContext.Provider value={value}>{children}</LedgerContext.Provider>;
+}
+
+export function useLedger() {
+  const value = useContext(LedgerContext);
+  if (!value) throw new Error('useLedger must be used inside LedgerProvider');
+  return value;
+}
+
+export function useAccountPath() {
+  const { user } = useAuth();
+  const { ledger } = useLedger();
+  if (!user) return { href: '#/signup', hasLedger: false };
+  return { href: '#/app', hasLedger: Boolean(ledger) };
+}

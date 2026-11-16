@@ -1,3 +1,4 @@
+import { useAccountPath } from '../auth/LedgerContext';
 import { Logo } from '../components/ui';
 
 const COLS = [
@@ -7,6 +8,19 @@ const COLS = [
 ];
 
 export default function Footer() {
+  const account = useAccountPath();
+  const cols = COLS.map((column) => {
+    if (column.title !== 'Company') return column;
+    return {
+      ...column,
+      links: column.links.map(([label, href]) => (
+        href === '#/signup'
+          ? [account.hasLedger ? 'Your ledger' : 'Create a ledger', account.href]
+          : [label, href]
+      )),
+    };
+  });
+
   return (
     <footer className="border-t border-line bg-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)] lg:px-8">
@@ -14,7 +28,7 @@ export default function Footer() {
           <Logo />
           <p className="mt-4 max-w-xs text-sm text-ink">One shared, checkable record of what was agreed and what was booked — for both sides.</p>
         </div>
-        {COLS.map((c) => (
+        {cols.map((c) => (
           <div key={c.title}>
             <div className="font-mono text-xs uppercase tracking-wider text-ink">{c.title}</div>
             <ul className="mt-4 space-y-2.5">

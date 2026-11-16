@@ -11,12 +11,14 @@ import {
   ShieldCheck,
   Umbrella,
 } from 'lucide-react';
+import { useAccountPath } from '../auth/LedgerContext';
 import { Counter, EASE, MagneticButton } from '../components/ui';
 import HeroSim from './HeroSim';
 
 const WORDS = 'Stop arguing with your counterparties about'.split(' ');
 
 export default function Hero() {
+  const account = useAccountPath();
   return (
     <section id="top" className="relative overflow-hidden">
       <div className="grid-bg pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]" />
@@ -138,8 +140,8 @@ export default function Hero() {
             <MagneticButton href="#cost" variant="ghost">
               What the gap costs you
             </MagneticButton>
-            <a href="#/signup" className="text-sm font-semibold text-navy underline-offset-4 hover:text-brand hover:underline">
-              Create your ledger
+            <a href={account.href} className="text-sm font-semibold text-navy underline-offset-4 hover:text-brand hover:underline">
+              {account.hasLedger ? 'Your ledger' : 'Create your ledger'}
             </a>
           </motion.div>
         </div>

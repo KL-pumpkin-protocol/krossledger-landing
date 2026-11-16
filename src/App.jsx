@@ -12,6 +12,7 @@ import MechanismDemo from './sections/MechanismDemo';
 import FinalCTA from './sections/FinalCTA';
 import Footer from './sections/Footer';
 import { AuthProvider } from './auth/AuthContext';
+import { LedgerProvider } from './auth/LedgerContext';
 import { useHashRoute } from './lib/route';
 import AuthScreen from './screens/AuthScreen';
 import CreateLedger from './screens/CreateLedger';
@@ -57,7 +58,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <LedgerProvider>
+        <AppRoutes />
+      </LedgerProvider>
     </AuthProvider>
   );
 }

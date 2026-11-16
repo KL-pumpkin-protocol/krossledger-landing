@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Check, X } from 'lucide-react';
+import { useAccountPath } from '../auth/LedgerContext';
 import { MagneticButton, Reveal } from '../components/ui';
 
 const ROWS = [
@@ -11,6 +12,7 @@ const ROWS = [
 ];
 
 export default function FinalCTA() {
+  const account = useAccountPath();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-30%' });
   const [agreed, setAgreed] = useState(false);
@@ -39,7 +41,9 @@ export default function FinalCTA() {
             </Reveal>
             <Reveal delay={0.15} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <MagneticButton href="mailto:hello@krossledger.com?subject=One%20relationship">Make one relationship stop arguing</MagneticButton>
-              <MagneticButton href="#/signup" variant="ghost">Create your ledger</MagneticButton>
+              <MagneticButton href={account.href} variant="ghost">
+                {account.hasLedger ? 'Your ledger' : 'Create your ledger'}
+              </MagneticButton>
             </Reveal>
           </div>
 

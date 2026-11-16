@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { useLedger } from '../auth/LedgerContext';
 import { SECTIONS, buildLedgerRequest, emptyLedgerValues, newIdempotencyKey } from '../lib/ledger';
+import { ESTIMATE_MS, PROVISION_MS, alertDue, countdown, formatClock, ledgerFromResponse } from '../lib/provision';
 import { errorText, getPb } from '../lib/pb';
 
 const inputClass =
@@ -38,11 +40,141 @@ function Field({ field, value, onChange }) {
   );
 }
 
+function healthCopy(health) {
+  if (health === 'up') return 'Up';
+  if (health === 'down') return 'Not ready yet';
+  if (health === 'unknown') return 'Waiting for a health check';
+  return 'Checking';
+}
+
+function LedgerReady({ ledger, email }) {
+  const [now, setNow] = useState(() => Date.now());
+  const [health, setHealth] = useState('checking');
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let pending = false;
+    let timer = 0;
+
+    async function check() {
+      if (pending) return;
+      pending = true;
+      try {
+        const row = await getPb().send('/api/krossledger/instances/health', { method: 'GET' });
+        if (cancelled) return;
+        if (row?.ok) {
+          setHealth('up');
+          window.clearInterval(timer);
+          return;
+        }
+        setHealth('down');
+      } catch (err) {
+        if (cancelled) return;
+        setHealth(err?.status === 404 ? 'unknown' : 'down');
+      } finally {
+        pending = false;
+      }
+    }
+
+    setHealth('checking');
+    check();
+    timer = window.setInterval(check, 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [ledger.name]);
+
+  const clock = countdown(ledger.acceptedAt, now);
+  const notified = health === 'down' && alertDue(ledger.acceptedAt, now);
+  const estimateAt = (ESTIMATE_MS / PROVISION_MS) * 100;
+  const secondsTotal = PROVISION_MS / 1000;
+  const secondsElapsed = Math.min(secondsTotal, secondsTotal - Math.ceil(clock.remaining / 1000));
+
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+      <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink">
+        <span className="text-brand">Signed in</span> · {email}
+      </p>
+      <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-navy sm:text-4xl">Your KrossLedger</h1>
+      <p className="mt-3 text-sm leading-relaxed text-ink">
+        It usually comes up after the third minute.
+      </p>
+
+      <section className="mt-8 rounded-3xl border border-line bg-white p-5 sm:p-7">
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink">Ledger address</p>
+        <p className="mt-3 break-all font-mono text-lg font-semibold text-navy sm:text-xl">{ledger.hostname}</p>
+
+        {clock.ready ? null : (
+          <div className="mt-8">
+            <div className="flex items-center justify-between gap-4 text-sm">
+              <span className="font-medium text-navy">Bringing it up</span>
+              <span className="font-mono text-navy" role="timer">{formatClock(clock.remaining)}</span>
+            </div>
+            <div className="relative mt-3 pt-6">
+              <span
+                className="absolute top-0 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-wider text-ink"
+                style={{ left: `${estimateAt}%` }}
+              >
+                Estimated time
+              </span>
+              <div
+                className="relative h-2 rounded-full bg-line"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={secondsTotal}
+                aria-valuenow={secondsElapsed}
+                aria-label="Time until the ledger can be opened"
+              >
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full bg-brand transition-[width] duration-1000 ease-linear"
+                  style={{ width: `${(1 - clock.ratio) * 100}%` }}
+                />
+                <span
+                  className="absolute top-1/2 h-3.5 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-navy"
+                  style={{ left: `${estimateAt}%` }}
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <p className="mt-6 text-sm text-navy" aria-live="polite">
+          Health: <span className="font-semibold">{healthCopy(health)}</span>
+        </p>
+
+        {notified ? (
+          <p className="mt-4 rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand" role="status">
+            This is taking longer than expected. We&apos;ve been notified.
+          </p>
+        ) : null}
+
+        {clock.ready ? (
+          <a
+            href={ledger.hostname}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex rounded-full bg-brand px-6 py-3.5 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(211,0,17,0.7)]"
+          >
+            Open ledger
+          </a>
+        ) : null}
+      </section>
+    </main>
+  );
+}
+
 export default function CreateLedger() {
   const { user, ready } = useAuth();
+  const { ledger, ready: ledgerReady, saveLedger } = useLedger();
   const [values, setValues] = useState(emptyLedgerValues);
   const [error, setError] = useState('');
-  const [result, setResult] = useState(null);
   const [pending, setPending] = useState(false);
   const idempotencyKey = useRef(newIdempotencyKey());
 
@@ -66,7 +198,6 @@ export default function CreateLedger() {
   async function onSubmit(event) {
     event.preventDefault();
     setError('');
-    setResult(null);
     const built = buildLedgerRequest(values, idempotencyKey.current);
     if (built.error) {
       setError(built.error);
@@ -78,7 +209,12 @@ export default function CreateLedger() {
         method: 'POST',
         body: built.body,
       });
-      setResult(response);
+      const entry = ledgerFromResponse(response, built.body.name);
+      if (!entry) {
+        setError('The ledger was accepted, but the address could not be read.');
+      } else {
+        saveLedger(user.id, entry);
+      }
       idempotencyKey.current = newIdempotencyKey();
     } catch (err) {
       if (!err?.status) {
@@ -94,6 +230,14 @@ export default function CreateLedger() {
 
   if (!ready || !user) {
     return <main className="px-4 py-24 text-center text-sm text-ink">Checking your session…</main>;
+  }
+
+  if (!ledger && !ledgerReady) {
+    return <main className="px-4 py-24 text-center text-sm text-ink">Checking your ledger…</main>;
+  }
+
+  if (ledger) {
+    return <LedgerReady ledger={ledger} email={user.email} />;
   }
 
   return (
@@ -160,15 +304,6 @@ export default function CreateLedger() {
           <p role="alert" className="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand">
             {error}
           </p>
-        ) : null}
-        {result ? (
-          <div className="rounded-2xl bg-navy px-4 py-4 text-sm text-white">
-            <p className="font-semibold">Ledger accepted.</p>
-            <p className="mt-1 text-white/80">
-              Operation {result.operation_id || 'pending'} is {result.status || 'accepted'}.
-              {result.step ? ` Step: ${result.step}.` : ''}
-            </p>
-          </div>
         ) : null}
 
         <button
