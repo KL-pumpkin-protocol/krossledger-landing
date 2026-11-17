@@ -4,6 +4,7 @@ import { useLedger } from '../auth/LedgerContext';
 import { SECTIONS, buildLedgerRequest, emptyLedgerValues, newIdempotencyKey } from '../lib/ledger';
 import { ESTIMATE_MS, PROVISION_MS, alertDue, countdown, formatClock, ledgerFromResponse, ledgerHealthUrl } from '../lib/provision';
 import { errorText, getPb } from '../lib/pb';
+import { EmailConfirmBanner, PasswordByEmail } from './AccountMail';
 
 const inputClass =
   'rounded-xl border border-line bg-paper px-3 py-2.5 text-sm text-navy outline-none transition focus:border-navy focus:bg-white focus:ring-2 focus:ring-navy/10';
@@ -66,7 +67,7 @@ async function browserSeesHealth(hostname) {
   }
 }
 
-function LedgerReady({ ledger, email }) {
+function LedgerReady({ ledger, email, verified }) {
   const [now, setNow] = useState(() => Date.now());
   const [health, setHealth] = useState('checking');
 
@@ -131,6 +132,7 @@ function LedgerReady({ ledger, email }) {
         <span className="text-brand">Signed in</span> · {email}
       </p>
       <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-navy sm:text-4xl">Your KrossLedger</h1>
+      {verified ? null : <EmailConfirmBanner email={email} />}
 
       <section className="mt-8 rounded-3xl border border-line bg-white p-5 sm:p-7">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink">Ledger address</p>
@@ -202,6 +204,7 @@ function LedgerReady({ ledger, email }) {
           </button>
         ) : null}
       </section>
+      <PasswordByEmail email={email} />
     </main>
   );
 }
@@ -273,7 +276,7 @@ export default function CreateLedger() {
   }
 
   if (ledger) {
-    return <LedgerReady ledger={ledger} email={user.email} />;
+    return <LedgerReady ledger={ledger} email={user.email} verified={user.verified} />;
   }
 
   return (
@@ -282,6 +285,7 @@ export default function CreateLedger() {
         <span className="text-brand">Signed in</span> · {user.email}
       </p>
       <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-navy sm:text-4xl">Create a KrossLedger</h1>
+      {user.verified ? null : <EmailConfirmBanner email={user.email} />}
       <p className="mt-3 text-sm leading-relaxed text-ink">
         This sends the form to auth.hexcros.com, which creates the instance on the fleet. The fleet key stays on the server.
         Owner is <span className="font-mono text-navy">krossledger</span>. Blank fields are left out. Values may only use letters,
@@ -350,6 +354,7 @@ export default function CreateLedger() {
           {pending ? 'Creating…' : 'Create KrossLedger'}
         </button>
       </form>
+      <PasswordByEmail email={user.email} />
     </main>
   );
 }

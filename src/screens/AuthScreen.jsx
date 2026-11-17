@@ -5,14 +5,16 @@ const inputClass =
   'rounded-xl border border-line bg-white px-3 py-2.5 text-sm text-navy outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/10';
 
 export default function AuthScreen({ mode }) {
-  const { user, ready, login, signup } = useAuth();
+  const { user, ready, login, signup, requestVerification, requestPasswordReset } = useAuth();
   const isSignup = mode === 'signup';
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [pending, setPending] = useState(false);
+  const [sentTo, setSentTo] = useState('');
 
   useEffect(() => {
     if (ready && user) window.location.hash = '#/app';
@@ -21,6 +23,7 @@ export default function AuthScreen({ mode }) {
   async function onSubmit(event) {
     event.preventDefault();
     setError('');
+    setNotice('');
     if (isSignup && password !== passwordConfirm) {
       setError('Passwords do not match.');
       return;
@@ -29,17 +32,58 @@ export default function AuthScreen({ mode }) {
     try {
       if (isSignup) {
         await signup({ name, email, password, passwordConfirm });
+        setSentTo(email.trim());
       } else {
         await login(email, password);
+        window.location.hash = '#/app';
       }
-      window.location.hash = '#/app';
     } catch (err) {
       const message = err.message || 'Something went wrong';
-      if (isSignup && /verified|verification/i.test(message)) {
-        setError('Account created. Confirm the email from auth.hexcros.com, then log in.');
+      if (isSignup && err.code === 'verification-email') {
+        setSentTo(email.trim());
+        setError(`Your account is created, but the confirmation email could not be sent. ${message}`);
       } else {
         setError(message);
       }
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function sendVerification() {
+    const identity = (sentTo || email).trim();
+    if (!identity) {
+      setError('Enter your email first.');
+      return;
+    }
+    setPending(true);
+    setError('');
+    setNotice('');
+    try {
+      await requestVerification(identity);
+      setNotice(`If that account still needs confirmation, a link is on its way to ${identity}.`);
+    } catch (err) {
+      setError(err.message || 'The confirmation email could not be sent.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function sendPasswordReset() {
+    const identity = email.trim();
+    if (!identity) {
+      setError('Enter your email first.');
+      setNotice('');
+      return;
+    }
+    setPending(true);
+    setError('');
+    setNotice('');
+    try {
+      await requestPasswordReset(identity);
+      setNotice(`If an account exists for ${identity}, a password link is on its way.`);
+    } catch (err) {
+      setError(err.message || 'The password email could not be sent.');
     } finally {
       setPending(false);
     }
@@ -52,9 +96,45 @@ export default function AuthScreen({ mode }) {
       </h1>
       <p className="mt-2 text-sm text-ink">
         {isSignup
-          ? 'This account is on auth.hexcros.com. You will use it to create a KrossLedger.'
+          ? 'This account is on auth.hexcros.com. A confirmation email finishes the signup.'
           : 'Use the account you created on auth.hexcros.com.'}
       </p>
+      {isSignup && sentTo ? (
+        <div className="mt-8 rounded-3xl border border-line bg-white p-5">
+          <p className="text-sm leading-relaxed text-ink">
+            {error ? (
+              <>
+                Your account for <span className="font-medium text-navy">{sentTo}</span> is created.
+                Send the confirmation email again once mail is working.
+              </>
+            ) : (
+              <>
+                A confirmation link is on its way to <span className="font-medium text-navy">{sentTo}</span>.
+                Open it, then log in.
+              </>
+            )}
+          </p>
+          {error ? (
+            <p role="alert" className="mt-4 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand">{error}</p>
+          ) : null}
+          {notice ? (
+            <p role="status" className="mt-4 rounded-xl bg-navy-50 px-3 py-2 text-sm text-navy">{notice}</p>
+          ) : null}
+          <button
+            type="button"
+            onClick={sendVerification}
+            disabled={pending}
+            className="mt-5 rounded-full border border-navy px-5 py-2.5 text-sm font-semibold text-navy disabled:opacity-60"
+          >
+            {pending ? 'Sending…' : 'Send the email again'}
+          </button>
+          <p className="mt-6 text-sm text-ink">
+            <a href="#/login" className="font-semibold text-navy hover:text-brand">
+              Log in
+            </a>
+          </p>
+        </div>
+      ) : (
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4">
         {isSignup && (
           <label className="flex flex-col gap-1.5 text-sm font-medium text-navy">
@@ -99,11 +179,16 @@ export default function AuthScreen({ mode }) {
             />
           </label>
         )}
-        {error && (
+        {error ? (
           <p role="alert" className="rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand">
             {error}
           </p>
-        )}
+        ) : null}
+        {notice ? (
+          <p role="status" className="rounded-xl bg-navy-50 px-3 py-2 text-sm text-navy">
+            {notice}
+          </p>
+        ) : null}
         <button
           type="submit"
           disabled={pending}
@@ -111,7 +196,19 @@ export default function AuthScreen({ mode }) {
         >
           {pending ? 'Please wait…' : isSignup ? 'Sign up' : 'Log in'}
         </button>
+        {isSignup ? null : (
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            <button type="button" onClick={sendPasswordReset} disabled={pending} className="font-semibold text-navy hover:text-brand disabled:opacity-60">
+              Forgot your password?
+            </button>
+            <button type="button" onClick={sendVerification} disabled={pending} className="font-semibold text-navy hover:text-brand disabled:opacity-60">
+              Resend confirmation email
+            </button>
+          </div>
+        )}
       </form>
+      )}
+      {isSignup && sentTo ? null : (
       <p className="mt-6 text-sm text-ink">
         {isSignup ? (
           <>
@@ -129,6 +226,7 @@ export default function AuthScreen({ mode }) {
           </>
         )}
       </p>
+      )}
     </main>
   );
 }

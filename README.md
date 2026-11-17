@@ -23,7 +23,9 @@ One-time setup:
 
 ## Accounts
 
-Login and signup use PocketBase at `https://auth.hexcros.com` (`VITE_POCKETBASE_URL` overrides it). Signed-in users open `#/app` and submit a ledger. The browser calls `POST /api/krossledger/instances` on PocketBase. The hook in `pocketbase/pb_hooks/krossledger.pb.js` adds the fleet API key and calls `https://fleet.hexcros.com/v1/instances`.
+Login and signup use PocketBase at `https://auth.hexcros.com` (`VITE_POCKETBASE_URL` overrides it). Signup creates the user and asks PocketBase to email a confirmation link to `https://www.krossledger.com/#/confirm-verification/{token}`. Until that email is confirmed, `#/app` shows a banner with a resend button. Signed-in users can email themselves a password link, which opens `https://www.krossledger.com/#/reset-password/{token}`. The same two emails can be requested from the login page. SMTP, the sender name, and the sender address stay in the PocketBase mail settings.
+
+Signed-in users open `#/app` and submit a ledger. The browser calls `POST /api/krossledger/instances` on PocketBase. The hook in `pocketbase/pb_hooks/krossledger.pb.js` adds the fleet API key and calls `https://fleet.hexcros.com/v1/instances`.
 
 Copy these into the PocketBase data directory and restart:
 
@@ -31,6 +33,7 @@ Copy these into the PocketBase data directory and restart:
 - `pocketbase/pb_migrations/1794787200_create_krossledger_instances.js` → `pb_migrations/`
 - `pocketbase/pb_migrations/1794790000_add_instance_id.js` → `pb_migrations/`
 - `pocketbase/pb_migrations/1794800000_add_machine_status.js` → `pb_migrations/`
+- `pocketbase/pb_migrations/1794810000_auth_email_templates.js` → `pb_migrations/`
 
 Set `FLEET_API_KEY` (and `GHCR_USERNAME` / `GHCR_TOKEN` if the registry credentials should stay off the form). Set `FLEET_WEBHOOK_SECRET` to the same value as pk-fleet `PK_FLEET_POCKET_WEBHOOK_SECRET`. pk-fleet then POSTs create and terminate status to `/api/krossledger/fleet/webhook`, which writes `instance_id`, `provisioning_state`, `readiness`, and `ec2_state` on that user's row. A `terminated` or `failed` machine is no longer shown as the user's ledger.
 

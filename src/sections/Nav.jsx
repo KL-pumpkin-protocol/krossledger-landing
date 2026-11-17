@@ -34,7 +34,7 @@ export default function Nav() {
   return (
     <>
       {/* announcement bar */}
-      {route === 'home' && (
+      {route.name === 'home' && (
       <a
         href="#offer"
         className="group relative z-50 flex items-center justify-center gap-2 bg-navy px-4 py-2 text-center text-xs font-medium text-white/85 sm:text-sm"
@@ -47,7 +47,7 @@ export default function Nav() {
 
       <header
         className={`sticky top-0 z-40 transition-all duration-300 ${
-          scrolled || route !== 'home'
+            scrolled || route.name !== 'home'
             ? 'border-b border-line bg-white/90 backdrop-blur-xl'
             : 'border-b border-transparent bg-white/0'
         }`}

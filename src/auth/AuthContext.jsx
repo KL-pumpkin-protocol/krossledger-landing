@@ -43,15 +43,66 @@ export function AuthProvider({ children }) {
         }
       },
       async signup({ name, email, password, passwordConfirm }) {
+        const identity = email.trim();
         try {
           await pb.collection('users').create({
             name: name.trim(),
-            email: email.trim(),
+            email: identity,
             password,
             passwordConfirm,
             emailVisibility: false,
           });
-          await pb.collection('users').authWithPassword(email.trim(), password);
+        } catch (err) {
+          throw new Error(errorText(err));
+        }
+        try {
+          await pb.collection('users').requestVerification(identity);
+        } catch (err) {
+          const error = new Error(errorText(err));
+          error.code = 'verification-email';
+          throw error;
+        }
+      },
+      async requestVerification(email) {
+        try {
+          await pb.collection('users').requestVerification(email.trim());
+        } catch (err) {
+          throw new Error(errorText(err));
+        }
+      },
+      async confirmVerification(token) {
+        try {
+          await pb.collection('users').confirmVerification(token);
+        } catch (err) {
+          throw new Error(errorText(err));
+        }
+        if (pb.authStore.isValid && !isSuperuser(pb.authStore.record)) {
+          try {
+            await pb.collection('users').authRefresh();
+          } catch {
+            pb.authStore.clear();
+          }
+        }
+      },
+      async requestPasswordReset(email) {
+        try {
+          await pb.collection('users').requestPasswordReset(email.trim());
+        } catch (err) {
+          throw new Error(errorText(err));
+        }
+      },
+      async confirmPasswordReset(token, password, passwordConfirm) {
+        try {
+          await pb.collection('users').confirmPasswordReset(token, password, passwordConfirm);
+          pb.authStore.clear();
+        } catch (err) {
+          throw new Error(errorText(err));
+        }
+      },
+      async refresh() {
+        const collection = isSuperuser(pb.authStore.record) ? '_superusers' : 'users';
+        try {
+          await pb.collection(collection).authRefresh();
         } catch (err) {
           throw new Error(errorText(err));
         }

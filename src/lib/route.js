@@ -1,5 +1,26 @@
 import { useEffect, useState } from 'react';
 
+const CONFIRM = '#/confirm-verification/';
+const RESET = '#/reset-password/';
+
+function tokenFrom(hash, prefix) {
+  try {
+    return decodeURIComponent(hash.slice(prefix.length));
+  } catch {
+    return '';
+  }
+}
+
+export function parseHash(hash) {
+  const value = hash || '';
+  if (value === '#/login') return { name: 'login', token: '' };
+  if (value === '#/signup') return { name: 'signup', token: '' };
+  if (value === '#/app') return { name: 'app', token: '' };
+  if (value.startsWith(CONFIRM)) return { name: 'confirm-verification', token: tokenFrom(value, CONFIRM) };
+  if (value.startsWith(RESET)) return { name: 'reset-password', token: tokenFrom(value, RESET) };
+  return { name: 'home', token: '' };
+}
+
 export function useHashRoute() {
   const [hash, setHash] = useState(() => window.location.hash || '');
 
@@ -9,8 +30,5 @@ export function useHashRoute() {
     return () => window.removeEventListener('hashchange', sync);
   }, []);
 
-  if (hash === '#/login') return 'login';
-  if (hash === '#/signup') return 'signup';
-  if (hash === '#/app') return 'app';
-  return 'home';
+  return parseHash(hash);
 }

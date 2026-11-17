@@ -15,21 +15,25 @@ import { AuthProvider, useAuth } from './auth/AuthContext';
 import { LedgerProvider } from './auth/LedgerContext';
 import { useHashRoute } from './lib/route';
 import AuthScreen from './screens/AuthScreen';
+import ConfirmVerification from './screens/ConfirmVerification';
+import ResetPassword from './screens/ResetPassword';
 import CreateLedger from './screens/CreateLedger';
 import AdminDashboard from './screens/AdminDashboard';
 
 function AppRoutes() {
   const route = useHashRoute();
   const { superuser } = useAuth();
-  const account = route !== 'home';
+  const account = route.name !== 'home';
 
   return (
     <>
       <Nav />
-      {route === 'login' && <AuthScreen mode="login" />}
-      {route === 'signup' && <AuthScreen mode="signup" />}
-      {route === 'app' && (superuser ? <AdminDashboard /> : <CreateLedger />)}
-      {route === 'home' && (
+      {route.name === 'login' && <AuthScreen mode="login" />}
+      {route.name === 'signup' && <AuthScreen mode="signup" />}
+      {route.name === 'confirm-verification' && <ConfirmVerification token={route.token} />}
+      {route.name === 'reset-password' && <ResetPassword token={route.token} />}
+      {route.name === 'app' && (superuser ? <AdminDashboard /> : <CreateLedger />)}
+      {route.name === 'home' && (
         <main>
           <Hero />
           <Marquee />
