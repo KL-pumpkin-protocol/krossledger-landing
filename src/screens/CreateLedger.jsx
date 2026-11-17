@@ -4,7 +4,7 @@ import { useLedger } from '../auth/LedgerContext';
 import { SECTIONS, buildLedgerRequest, emptyLedgerValues, newIdempotencyKey } from '../lib/ledger';
 import { ESTIMATE_MS, PROVISION_MS, alertDue, countdown, formatClock, ledgerFromResponse, ledgerHealthUrl } from '../lib/provision';
 import { errorText, getPb } from '../lib/pb';
-import { EmailConfirmBanner, PasswordByEmail } from './AccountMail';
+import { EmailConfirmBanner } from './AccountMail';
 
 const inputClass =
   'rounded-xl border border-line bg-paper px-3 py-2.5 text-sm text-navy outline-none transition focus:border-navy focus:bg-white focus:ring-2 focus:ring-navy/10';
@@ -204,7 +204,6 @@ function LedgerReady({ ledger, email, verified }) {
           </button>
         ) : null}
       </section>
-      <PasswordByEmail email={email} />
     </main>
   );
 }
@@ -354,7 +353,6 @@ export default function CreateLedger() {
           {pending ? 'Creating…' : 'Create KrossLedger'}
         </button>
       </form>
-      <PasswordByEmail email={user.email} />
     </main>
   );
 }
