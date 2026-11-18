@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { useAccountPath } from '../auth/LedgerContext';
+import { PUBLIC_SIGNUP } from '../lib/signup';
 import { useAuth } from '../auth/AuthContext';
 import { useHashRoute } from '../lib/route';
 import { Logo, MagneticButton } from '../components/ui';
@@ -83,11 +84,13 @@ export default function Nav() {
               </>
             ) : (
               <>
-                <a href="#/login" className="px-2 text-sm font-medium text-navy hover:text-brand">
-                  Log in
-                </a>
-                <MagneticButton href="#/signup" variant="dark" className="!px-5 !py-2.5 text-sm">
-                  Sign up
+                {PUBLIC_SIGNUP ? (
+                  <a href="#/login" className="px-2 text-sm font-medium text-navy hover:text-brand">
+                    Log in
+                  </a>
+                ) : null}
+                <MagneticButton href={PUBLIC_SIGNUP ? '#/signup' : '#/login'} variant="dark" className="!px-5 !py-2.5 text-sm">
+                  {PUBLIC_SIGNUP ? 'Sign up' : 'Log in'}
                 </MagneticButton>
               </>
             )}
@@ -146,11 +149,17 @@ export default function Nav() {
                     </>
                   ) : (
                     <>
-                      <a href="#/login" onClick={() => setOpen(false)} className="text-sm font-semibold text-navy">
-                        Log in
-                      </a>
-                      <MagneticButton href="#/signup" className="w-full" onClick={() => setOpen(false)}>
-                        Sign up
+                      {PUBLIC_SIGNUP ? (
+                        <a href="#/login" onClick={() => setOpen(false)} className="text-sm font-semibold text-navy">
+                          Log in
+                        </a>
+                      ) : null}
+                      <MagneticButton
+                        href={PUBLIC_SIGNUP ? '#/signup' : '#/login'}
+                        className="w-full"
+                        onClick={() => setOpen(false)}
+                      >
+                        {PUBLIC_SIGNUP ? 'Sign up' : 'Log in'}
                       </MagneticButton>
                     </>
                   )}

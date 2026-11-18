@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { clearStoredLedger, ledgerFromResponse, readStoredLedger, writeStoredLedger } from '../lib/provision';
 import { getPb, isSuperuser } from '../lib/pb';
+import { PUBLIC_SIGNUP } from '../lib/signup';
 import { useAuth } from './AuthContext';
 
 const LedgerContext = createContext(null);
@@ -80,7 +81,10 @@ export function useLedger() {
 export function useAccountPath() {
   const { user } = useAuth();
   const { ledger } = useLedger();
-  if (!user) return { href: '#/signup', label: 'Create your ledger', footerLabel: 'Create a ledger' };
+  if (!user) {
+    if (!PUBLIC_SIGNUP) return null;
+    return { href: '#/signup', label: 'Create your ledger', footerLabel: 'Create a ledger' };
+  }
   if (isSuperuser(user)) return { href: '#/app', label: 'Admin', footerLabel: 'Admin' };
   if (ledger) return { href: '#/app', label: 'Your ledger', footerLabel: 'Your ledger' };
   return { href: '#/app', label: 'Create your ledger', footerLabel: 'Create a ledger' };

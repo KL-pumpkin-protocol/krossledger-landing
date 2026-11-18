@@ -13,11 +13,11 @@ export default function Footer() {
     if (column.title !== 'Company') return column;
     return {
       ...column,
-      links: column.links.map(([label, href]) => (
-        href === '#/signup'
-          ? [account.footerLabel, account.href]
-          : [label, href]
-      )),
+      links: column.links.flatMap(([label, href]) => {
+        if (href !== '#/signup') return [[label, href]];
+        if (!account) return [];
+        return [[account.footerLabel, account.href]];
+      }),
     };
   });
 

@@ -23,7 +23,7 @@ One-time setup:
 
 ## Accounts
 
-Login and signup use PocketBase at `https://auth.hexcros.com` (`VITE_POCKETBASE_URL` overrides it). Signup creates the user and asks PocketBase to email a confirmation link to `https://www.krossledger.com/#/confirm-verification/{token}`. Until that email is confirmed, `#/app` shows a banner with a resend button. Signed-in users can email themselves a password link, which opens `https://www.krossledger.com/#/reset-password/{token}`. The same two emails can be requested from the login page. SMTP, the sender name, and the sender address stay in the PocketBase mail settings.
+Login uses PocketBase at `https://auth.hexcros.com` (`VITE_POCKETBASE_URL` overrides it). Public signup is closed (`PUBLIC_SIGNUP` in `src/lib/signup.js`). Existing accounts still confirm email at `https://www.krossledger.com/#/confirm-verification/{token}`. Until that email is confirmed, `#/app` shows a banner with a resend button. Signed-in users can email themselves a password link, which opens `https://www.krossledger.com/#/reset-password/{token}`. The same two emails can be requested from the login page. `#/signup` opens the login screen. SMTP, the sender name, and the sender address stay in the PocketBase mail settings.
 
 Signed-in users open `#/app` and submit a ledger. The browser calls `POST /api/krossledger/instances` on PocketBase. The hook in `pocketbase/pb_hooks/krossledger.pb.js` adds the fleet API key and calls `https://fleet.hexcros.com/v1/instances`.
 

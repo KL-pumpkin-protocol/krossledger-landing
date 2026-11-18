@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Nav from './sections/Nav';
 import Hero from './sections/Hero';
 import Marquee from './sections/Marquee';
@@ -14,6 +15,7 @@ import Footer from './sections/Footer';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { LedgerProvider } from './auth/LedgerContext';
 import { useHashRoute } from './lib/route';
+import { PUBLIC_SIGNUP } from './lib/signup';
 import AuthScreen from './screens/AuthScreen';
 import ConfirmVerification from './screens/ConfirmVerification';
 import ResetPassword from './screens/ResetPassword';
@@ -25,11 +27,17 @@ function AppRoutes() {
   const { superuser } = useAuth();
   const account = route.name !== 'home';
 
+  useEffect(() => {
+    if (!PUBLIC_SIGNUP && window.location.hash === '#/signup') {
+      window.location.replace(`${window.location.pathname}${window.location.search}#/login`);
+    }
+  }, [route.name]);
+
   return (
     <>
       <Nav />
       {route.name === 'login' && <AuthScreen mode="login" />}
-      {route.name === 'signup' && <AuthScreen mode="signup" />}
+      {PUBLIC_SIGNUP && route.name === 'signup' && <AuthScreen mode="signup" />}
       {route.name === 'confirm-verification' && <ConfirmVerification token={route.token} />}
       {route.name === 'reset-password' && <ResetPassword token={route.token} />}
       {route.name === 'app' && (superuser ? <AdminDashboard /> : <CreateLedger />)}

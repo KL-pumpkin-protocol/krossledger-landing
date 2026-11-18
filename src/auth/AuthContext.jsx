@@ -42,27 +42,6 @@ export function AuthProvider({ children }) {
           }
         }
       },
-      async signup({ name, email, password, passwordConfirm }) {
-        const identity = email.trim();
-        try {
-          await pb.collection('users').create({
-            name: name.trim(),
-            email: identity,
-            password,
-            passwordConfirm,
-            emailVisibility: false,
-          });
-        } catch (err) {
-          throw new Error(errorText(err));
-        }
-        try {
-          await pb.collection('users').requestVerification(identity);
-        } catch (err) {
-          const error = new Error(errorText(err));
-          error.code = 'verification-email';
-          throw error;
-        }
-      },
       async requestVerification(email) {
         try {
           await pb.collection('users').requestVerification(email.trim());

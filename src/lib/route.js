@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PUBLIC_SIGNUP } from './signup';
 
 const CONFIRM = '#/confirm-verification/';
 const RESET = '#/reset-password/';
@@ -14,7 +15,7 @@ function tokenFrom(hash, prefix) {
 export function parseHash(hash) {
   const value = hash || '';
   if (value === '#/login') return { name: 'login', token: '' };
-  if (value === '#/signup') return { name: 'signup', token: '' };
+  if (value === '#/signup') return { name: PUBLIC_SIGNUP ? 'signup' : 'login', token: '' };
   if (value === '#/app') return { name: 'app', token: '' };
   if (value.startsWith(CONFIRM)) return { name: 'confirm-verification', token: tokenFrom(value, CONFIRM) };
   if (value.startsWith(RESET)) return { name: 'reset-password', token: tokenFrom(value, RESET) };

@@ -140,9 +140,11 @@ export default function Hero() {
             <MagneticButton href="#cost" variant="ghost">
               What the gap costs you
             </MagneticButton>
-            <a href={account.href} className="text-sm font-semibold text-navy underline-offset-4 hover:text-brand hover:underline">
-              {account.label}
-            </a>
+            {account ? (
+              <a href={account.href} className="text-sm font-semibold text-navy underline-offset-4 hover:text-brand hover:underline">
+                {account.label}
+              </a>
+            ) : null}
           </motion.div>
         </div>
 

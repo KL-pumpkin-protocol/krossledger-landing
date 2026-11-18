@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { PUBLIC_SIGNUP } from '../lib/signup';
 
 const inputClass =
   'rounded-xl border border-line bg-white px-3 py-2.5 text-sm text-navy outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/10';
@@ -208,7 +209,7 @@ export default function AuthScreen({ mode }) {
         )}
       </form>
       )}
-      {isSignup && sentTo ? null : (
+      {isSignup && sentTo ? null : isSignup || PUBLIC_SIGNUP ? (
       <p className="mt-6 text-sm text-ink">
         {isSignup ? (
           <>
@@ -226,7 +227,7 @@ export default function AuthScreen({ mode }) {
           </>
         )}
       </p>
-      )}
+      ) : null}
     </main>
   );
 }
